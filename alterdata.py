@@ -53,7 +53,11 @@ def yield_dataset(random_ranges,random_type,number_of_randoms):
 def data_append(data,length):
     s = ''
     for num in data:
-        data_str = ('{:%dg}'%length).format(num)
+        # if num<0:
+        data_str = ('{:%dg}' % length).format(num)
+        # else:
+            # length -= 1
+            # data_str = (' {:%dg}' % length).format(num)
         if len(data_str) > length:
             if 'E' in data_str or 'e' in data_str:
                 # 1.0000000E+12 length = 6
@@ -65,12 +69,26 @@ def data_append(data,length):
                 data_str = data_str[:length_without_e] + data_str[e_position:]
             else :
                 data_str = data_str[:length]
+        
+        if len(data_str.strip()) == length and data_str[0] != '-':
+            if 'E' in data_str or 'e' in data_str:
+                # 1.0000000E+12 length = 6
+                if 'E' in data_str:
+                    e_position = data_str.index('E')
+                else:
+                    e_position = data_str.index('e')
+                data_str = ' ' + data_str[:e_position-1] + data_str[e_position:]
+            else:
+                data_str = ' ' + data_str[:length-1]
+            
         s += data_str
     return s
 
 
 def main():
-    print('     1     4' + data_append([133333333333333333],6))
+    ss = '     1.22222     4.33333' + data_append([133333333333333333],12)
+    print(ss)
+    print(len(ss))
 
 if __name__ == "__main__":
     main()
