@@ -53,6 +53,7 @@ class LoadFile(object):
         self.block_channel = []
         self.data_per_block = []
         self.block_header_notion = []
+        self.in_xnote = False
         # data_per_block是一个列表 data_per_block -> 每个list表示一个block的所有数字 -> list中的字典表示一行数据
         # 不通过字典的形式 改成list
         # 声明私有&只读变量
@@ -61,15 +62,16 @@ class LoadFile(object):
         # 完整的读入文档
         # try :
         f = open(path,'r')
-        self.row_list = [line.rstrip() for line in f.readlines()]
+        # Fuck Away Comments:
+        content = f.readlines()
+        cleaned_dta = []
+        for i in content:
+            cleaned_dta.append(i.split('#')[0])
+        cleaned_dta = [i for i in cleaned_dta if i]
+        # Comments Gone
+        self.row_list = [line.rstrip() for line in cleaned_dta]
         self.hasContext = True
         self.splitBlocks()
-        '''
-        except Exception as e :
-            print(e)
-            self.row_list = "文件无法打开，请检查路径是否正确"
-            self.hasContext = False
-        '''
 
     @property
     def sep(self):
@@ -80,78 +82,90 @@ class LoadFile(object):
         # 结构：data_per_block 的每个列表是一个block的所有元素
         self.header = self.row_list[:3]
         data_without_header = deepcopy(self.row_list[3:])
+        this_block = []
         for line_total in data_without_header :
             # No in-place changes are allowed.
-            line_total.rstrip()
+            # line_total.rstrip()
             if self.__sep == ' ' :
                 line = line_total.split()
             else :
                 line = line_total.split(self.__sep)
+            if len(line) == 0:
+                block_datas = {'tail_position': 0, 'row': -1, 'count': 0, 'data': [], 'rawline': line_total, 'length': 0, 'iscomment': True}
+                continue
             if not line[0].isdigit(): # 包括了-1和字母
                 if not '-1' in line[0]:
+                    if self.in_xnote:
+                        block_datas = {'tail_position': 0, 'row':-1, 'count': 0, 'data': [], 'rawline': line_total, 'length': 0, 'iscomment': True}
+                        this_block.append(block_datas)
+                        continue
                     # block的开头
                     if 'ENDJOB' in line[0] :
                         self.endjob_notion = line_total
                         continue
                     self.blocks.append(line[0])
                     self.block_header_notion.append(line_total)
-                    self.block_channel.append(int(line[2]))
+                    try:
+                        self.block_channel.append(int(line[2]))
+                    except:
+                        self.in_xnote = True
+                        self.block_channel.append(-1)
                     this_block = [] # 清空block
                     # line:元素个数 line_total:总长度
 
                 else :
                     # 发现了-1，一个block已经解析完毕
                     self.data_per_block.append(this_block)
+                    self.in_xnote = False
                     
             else :
                 # 数字
                 # 解析黏连的数据 从1开始（第二个数字就要开始
-
                 # 防止第一个数就出现问题
-                number_of_numbers = int(line_total[6:12])
-                if len(line[1])>6 :
-                    item2 = line[1][number_of_numbers :]
+                try:
+                    number_of_numbers = int(line_total[6:12])
+                except: # All comments
+                    block_datas = {'tail_position': 0, 'row': int(line[0]), 'count': 0, 'data': [], 'rawline': line_total, 'length': 0, 'iscomment': True}
+                first_item_length = len(str(number_of_numbers))
+                if len(line[1])>first_item_length : # 第一个数字黏连
+                    item2 = line[1][first_item_length:]
                     item1 = str(number_of_numbers)
                     line[1] = item1
                     line.insert(2,item2)
 
-                '''
-                try :
-                    number_of_numbers = int(line[1])
-                except :
-                    # insert 向左！ fuck
-                    data = line[1]
-                    line[1] = data[:1]
-                    line.insert(2,data[1:])
-                    line_total = ' '.join(line)
-
-                number_of_numbers = int(line[1])
-
-                # 方案二，能够防止第一个数出问题而且数据数量大于10，待完善，目前不用
-                if number_of_numbers > 99 :
-                    data = line[1]
-                    line[1] = data[:1]
-                    line.insert(2,data[1:])
-                    line_total = ' '.join(line)
-                '''
 # 注意数据第一个就黏连会导致line_total 的长度和预期不同
-                position1 = line_total.index(line[0]) + len(line[0])
-                # position1指向第二个元素开始的第一个
-                position2 = line_total[position1:].index(line[1]) + len(line[1])
-                length_of_data = len(line_total) - position2 - position1
-                this_block_length = int(length_of_data / number_of_numbers)
-                for i in range(2,number_of_numbers+2):
-                    if len(line[i]) > this_block_length:
-                        # 需要拆开
-                        item1 = line[i][: -this_block_length]
-                        item2 = line[i][-this_block_length:]
-                        line[i] = item1
-                        line.insert(i+1,item2)
-
-
-                block_datas = {'row':int(line[0]),'count':int(number_of_numbers),'data':[float(line[i+2].replace('D','E'))  for i in range(int(number_of_numbers))] if int(number_of_numbers)!=0 else [],'rawline':line_total,'length':this_block_length} # block_datas 一行的数字
+                position1 = line_total[12:].index(line[2]) + 12
+                position = [position1]
+                for i in range(3, len(line)):
+                    this_position = position[i-3] + len(line[i-1])
+                    position.append(line_total[this_position:].index(line[i])+this_position)
+                # 情况1：没有附加的信息，对于是否黏连的情况都有了考虑
+                for i in range(number_of_numbers, 0, -1):
+                    if i + 2 > len(line):
+                        continue
+                    length_of_all_data = position[i-1] + len(line[i+1]) - 12
+                    this_block_length = length_of_all_data // number_of_numbers
+                    if this_block_length * number_of_numbers != length_of_all_data:
+                        continue
+                    try:
+                        data_this_line = []
+                        for i in range(number_of_numbers):
+                            data_this_line.append(float(
+                                line_total[12+this_block_length*i: 12+this_block_length*(i+1)].replace('D', 'E')))
+                        # block_datas 一行的数字
+                        if len(position) <= i:
+                            tail_position = -1
+                        else:
+                            tail_position = position[i]
+                        block_datas = {'tail_position': tail_position, 'row': int(
+                            line[0]), 'count': number_of_numbers, 'data': data_this_line, 'rawline': line_total, 'length': this_block_length, 'iscomment': False}
+                        break
+                    except:
+                        pass
+                else:
+                    block_datas = {'tail_position':0, 'row': int(line[0]), 'count': 0, 'data': [], 'rawline': line_total, 'length': 0, 'iscomment': True}
                 this_block.append(block_datas)
-                
+
 
 # 这里结构有点混乱 需要重新修改结构 确保data
 
@@ -168,12 +182,14 @@ class LoadFile(object):
     
 
 def main():
-    path = "/Users/wangtianmin/Downloads/test.inp"
+    path = "/Users/wangtianmin/Downloads/attach.inp"
+    # path = "/Users/wangtianmin/Downloads/test.inp"
     ins = LoadFile(path)
-    print(ins.hasContext)
+    # print(ins.hasContext)
     if ins.hasContext:
-        print(ins['COOLIN'])
-        print(list(zip(ins.blocks,ins.block_channel)))
+        pass
+        # print(ins['INPCOM'])
+        # print(list(zip(ins.blocks,ins.block_channel)))
 if __name__ == "__main__":
     main()
 
