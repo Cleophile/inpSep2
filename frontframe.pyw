@@ -7,6 +7,9 @@
 import analyzedataset
 import alterdata
 
+import subprocess
+import multiprocessing
+
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -15,6 +18,14 @@ import sys
 import os
 from copy import copy,deepcopy
 import time
+import psutil
+
+THIS_SYSTEM = 'OTHERS'
+
+if 'win32' in sys.platform:
+    THIS_SYSTEM = 'WINDOWS'
+if 'darwin' in sys.platform:
+    THIS_SYSTEM = 'MACOS'
 
 def index_by_times(iterable,obj,times):
     find_times = 0
@@ -26,62 +37,87 @@ def index_by_times(iterable,obj,times):
     else :
         return -1
 
+'''
 def get_process_id(name):
     child = subprocess.Popen(['pgrep', '-f', name], stdout=subprocess.PIPE, shell=False)
     response = child.communicate()[0]
     return [int(pid) for pid in response.split()]
-
+'''
 
 # 线程定义
 class WorkingThread(multiprocessing.Process):
-    def __init__(self, inputName, outputName):
+    def __init__(self, inputName, outputName):  # , pid_list=pid_list
         super().__init__()
         self.name = 'WorkingThread'
         self.inputName = inputName
         self.outputName = outputName
+        # self.pid_list = pid_list
 
     def run(self):
-        os.system('sas.exe <{}> {}'.format(
-            self.inputName, self.outputName))
+        print('传输线程已经开始')
+        if os.path.exists('./SAS.log'):
+            if THIS_SYSTEM == 'MACOS':
+                os.system('rm ./SAS.log')
+            if THIS_SYSTEM == 'WINDOWS':
+                os.system('rd /q ./SAS.log')
+        if os.path.exists('./SAS.pid'):
+            if THIS_SYSTEM == 'MACOS':
+                os.system('rm ./SAS.pid')
+            if THIS_SYSTEM == 'WINDOWS':
+                os.system('rd /q ./SAS.pid')
+        if THIS_SYSTEM == 'MACOS':
+            cmd_line = './sas <{}> {}'.format(self.inputName, self.outputName)
+        if THIS_SYSTEM == 'WINDOWS':
+            cmd_line = 'sas.exe <{}> {}'.format(self.inputName, self.outputName)
+        os.system(cmd_line)
+        
 
-    def stop(self):
-        super().stop()
 
 class CountingThread(multiprocessing.Process):
-    def __init__(self, window, tcas_set, inputNum,radar='sas', clock=600, interval=10):
+    def __init__(self, window, inputNum,radar='sas', clock=600, interval=2):
         super().__init__()
         self.counting = True
         self.clock = clock
         self.interval = interval
         self.number_of_scans = int(clock/interval)
-        self.squawk_list = set(get_process_id(radar)) - set(tcas_set)
+        self.squawk = 9999
         self.radar = radar
-        self.loops = 0
-        self.tcas_set = set(tcas_set)
+        self.loops = 1
         self.inputNum = inputNum
         self.window = window
 
     def run(self):
+        time.sleep(self.interval)
+        print('程序睡眠{}秒'.format(self.interval))
+        try:
+            with open('SAS.pid') as f:
+                content = f.readlines()
+            pid_raw = content[0].strip().split()
+            self.squawk = int(pid_raw[1])
+            print('PID已经取得')
+        except:
+            self.terminate()
+        
         while self.counting:
             print('Counting Thread Counting:{}'.format(
                 self.loops*self.interval))
             time.sleep(self.interval)
-            self.loops += 1
             if self.loops > self.number_of_scans:
-                self.window.writelog(
-                    8, '<ERROR> {}.inp transmission TIME OUT!'.format(self.inputNum))
-                for sq in self.squawk_list:
-                    # os.kill(sq, signal.SIGKILL) Change for Windows
-                    os.popen('taskkill.exe /pid:'+str(sq))
-                break
-            now_process_ids = set(get_process_id(self.radar))
-            if now_process_ids - self.tcas_set == set():
+                self.window.writelog(8, '<ERROR> {}.inp transmission TIME OUT!'.format(self.inputNum))
+                if THIS_SYSTEM == 'WINDOWS':
+                    os.popen('taskkill.exe /pid:'+str(self.squawk))
+                if THIS_SYSTEM == 'MACOS':
+                    os.system('kill {}'.format(self.squawk))
+                print('WorkingThread Killed.')
+            now_process_ids = psutil.pids()
+            if not self.squawk in now_process_ids:
                 self.window.writelog(
                     8, '{}.inp transmission SUCCEED!'.format(self.inputNum))
                 break  # log for finishing
 
-    def stop(self):
+    def terminate(self):
         self.counting = False
+        multiprocessing.Process.terminate(self)
 # 线程定义完毕
 
 
@@ -605,9 +641,10 @@ class Window(QWidget):
         self.writelog(4,'Generating Process Complete!')
     
     def transmit_file(self):
-        self.writelog(8,'Transmitting process begin...')        
-        if not sys.platform == 'win32':
-            QMessageBox.warning(self, '错误', '系统错误，不是Windows系统', QMessageBox.Ok)
+        self.writelog(8,'Transmitting process begin...')
+        print('传输开始')        
+        if THIS_SYSTEM == 'OTHERS':
+            QMessageBox.warning(self, '错误', '系统错误，未知的系统', QMessageBox.Ok)
             self.writelog(1,'Unexpected system platform')
             self.writelog(1,'FATAL ERROR: Files can\'t be sent')
             self.writelog(8,'Transmitting process ABORTED')
@@ -621,6 +658,8 @@ class Window(QWidget):
 
         self.writelog(8,'Before Transmitting Checklist Complete!')
 
+        print('自检完成')        
+
         result_count = 1
         while True:
             result_path = self.current_folder + '_result'
@@ -631,16 +670,19 @@ class Window(QWidget):
                 self.result_path_full = result_path
                 break
         # 文件夹创建完毕
+        print('文件夹创建完成')
         # 获取输入输出文件名
         input_file_form = os.path.join(self.current_folder,'{}.inp')
         output_file_form = os.path.join(self.result_path_full,'{}.out')
         # 获取完毕
-
+        print('文件总数：{}'.format(self.current_folder_file_count))
         # 循环开始
-        for i in range(self.current_folder_file_count):
-            self.writelog(8,'Sending {}.inp...')
+        for i in range(self.current_folder_file_count + 1):
+            self.writelog(8,'Sending {}.inp...'.format(i))
+            print('Doing {} to {}'.format(
+                input_file_form.format(i), output_file_form.format(i)))
             thread1 = WorkingThread(input_file_form.format(i),output_file_form.format(i))
-            thread2 = CountingThread(self,get_process_id('sas'),i)
+            thread2 = CountingThread(self,i)
             thread1.start();thread2.start()
             
         # 循环体成功退出，注意记录
