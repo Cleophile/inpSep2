@@ -55,22 +55,11 @@ class WorkingThread(multiprocessing.Process):
 
     def run(self):
         print('传输线程已经开始')
-        if os.path.exists('./SAS.log'):
-            if THIS_SYSTEM == 'MACOS':
-                os.system('rm ./SAS.log')
-            if THIS_SYSTEM == 'WINDOWS':
-                os.system('rd /q ./SAS.log')
-        if os.path.exists('./SAS.pid'):
-            if THIS_SYSTEM == 'MACOS':
-                os.system('rm ./SAS.pid')
-            if THIS_SYSTEM == 'WINDOWS':
-                os.system('rd /q ./SAS.pid')
         if THIS_SYSTEM == 'MACOS':
             cmd_line = './sas <{}> {}'.format(self.inputName, self.outputName)
         if THIS_SYSTEM == 'WINDOWS':
             cmd_line = 'sas.exe <{}> {}'.format(self.inputName, self.outputName)
         os.system(cmd_line)
-        
 
 
 class CountingThread(multiprocessing.Process):
@@ -80,7 +69,7 @@ class CountingThread(multiprocessing.Process):
         self.clock = clock
         self.interval = interval
         self.number_of_scans = int(clock/interval)
-        self.squawk = 9999
+        self.squawk = None
         self.radar = radar
         self.loops = 1
         self.inputNum = inputNum
@@ -96,8 +85,8 @@ class CountingThread(multiprocessing.Process):
             self.squawk = int(pid_raw[1])
             print('PID已经取得')
         except:
-            self.terminate()
-        
+            pass
+
         while self.counting:
             print('Counting Thread Counting:{}'.format(
                 self.loops*self.interval))
@@ -126,6 +115,7 @@ class Window(QWidget):
         super().__init__()
         self.selected_points = []
         self.selected_randoms = []
+        self.random_type_list = []
         self.random_number_type = {
                 'normal': 0 ,# 高斯分布
                 'uniform': 1 # 均匀分布
@@ -418,7 +408,9 @@ class Window(QWidget):
         if self.input_random_right.text() and self.input_random_left.text() and len(self.selected_points) > len(self.selected_randoms):
             point = (float(self.input_random_left.text()),float(self.input_random_right.text()))
             self.selected_randoms.append(point)
-            self.randoms_show_area.addItem("({}, {})".format(*point))
+            random_type_name = self.random_function_choose_list.currentText()
+            self.random_type_list.append(self.random_number_type[random_type_name])
+            self.randoms_show_area.addItem("({}, {}，{})".format(*point,random_type_name))
             self.input_random_left.clear()
             self.input_random_right.clear()
             self.writelog(6, 'Random range added:({},{})'.format(*point))
@@ -430,6 +422,7 @@ class Window(QWidget):
             itemdeleted = copy(self.selected_randoms[current])
             self.randoms_show_area.takeItem(current)
             del self.selected_randoms[current]
+            del self.random_type_list[current]
             self.writelog(7, 'Random range deleted:({},{})'.format(*itemdeleted))
             itemdeleted = None
 
@@ -503,6 +496,8 @@ class Window(QWidget):
             self.input_box_row.clear()
             self.input_box_col.clear()
             self.points_show_area.clear()
+            self.random_type_list = []
+            self.randoms_show_area.clear()
             self.number_of_randoms_input.clear()
             self.selected_points = []
             self.selected_randoms = []
@@ -535,7 +530,6 @@ class Window(QWidget):
             self.writelog(4, 'Generating Process Aborted.')
             return
 
-        random_number_type = self.random_number_type[self.random_function_choose_list.currentText()]
         try :
             number_of_randoms = int(self.number_of_randoms_input.text())
         except :
@@ -572,7 +566,7 @@ class Window(QWidget):
                     raise KeyError
 
         except Exception as e :
-            print(e)
+            # print(e)
             if msg:
                 QMessageBox.warning(
                     self, '警告', '{}\n请检查block和位置的输入是否合理'.format(msg), QMessageBox.Ok)
@@ -606,7 +600,7 @@ class Window(QWidget):
         self.writelog(4,'Files would be located in {}'.format(folder_path))
 
 
-        for filecount, to_be_alterred_numbers in enumerate(alterdata.yield_dataset(self.selected_randoms,random_number_type,number_of_randoms)):
+        for filecount, to_be_alterred_numbers in enumerate(alterdata.yield_dataset(self.selected_randoms,self.random_type_list,number_of_randoms)):
             # 注意: 随机数已经取得，正在变更数据
             data_for_change = deepcopy(f.data_per_block) # list of dicts
             for count,point in enumerate(self.selected_points) :
@@ -614,7 +608,7 @@ class Window(QWidget):
                 block_index = index_by_times(f.blocks,point[0],point[1])
                 this_block_rows = [i['row'] for i in data_for_change[block_index]]
                 row_index = this_block_rows.index(point[2])
-                print(data_for_change[block_index][row_index])
+                # print(data_for_change[block_index][row_index])
 
                 data_for_change[block_index][row_index]['data'][point[3]-1] = to_be_alterred_numbers[count]
             # data_for_change已经更改完毕
@@ -677,13 +671,53 @@ class Window(QWidget):
         # 获取完毕
         print('文件总数：{}'.format(self.current_folder_file_count))
         # 循环开始
+        # thread1 = multiprocessing.Process() # PlaceHolder
+        # thread2 = multiprocessing.Process()
         for i in range(self.current_folder_file_count + 1):
+            # if i:
+                # thread1.terminate();thread2.terminate()
             self.writelog(8,'Sending {}.inp...'.format(i))
             print('Doing {} to {}'.format(
                 input_file_form.format(i), output_file_form.format(i)))
             thread1 = WorkingThread(input_file_form.format(i),output_file_form.format(i))
             thread2 = CountingThread(self,i)
             thread1.start();thread2.start()
+            while thread1.is_alive() or thread2.is_alive():
+                time.sleep(1)
+            if os.path.exists('./SAS.log'):
+                if THIS_SYSTEM == 'MACOS':
+                    os.system('rm ./SAS.log')
+                if THIS_SYSTEM == 'WINDOWS':
+                    os.system('rd /q ./SAS.log')
+            if os.path.exists('./SAS.pid'):
+                if THIS_SYSTEM == 'MACOS':
+                    os.system('rm ./SAS.pid')
+                if THIS_SYSTEM == 'WINDOWS':
+                    os.system('rd /q ./SAS.pid')
+
+            if os.path.exists('CHANNEL.dat'):
+                if THIS_SYSTEM == 'MACOS':
+                    os.system('rm ./CHANNEL.dat')
+                if THIS_SYSTEM == 'WINDOWS':
+                    os.system('rd /q ./CHANNEL.dat')
+            if os.path.exists('./INPUT.dat'):
+                if THIS_SYSTEM == 'MACOS':
+                    os.system('rm ./INPUT.dat')
+                if THIS_SYSTEM == 'WINDOWS':
+                    os.system('rd /q ./INPUT.dat')
+
+            if os.path.exists('./PRIMAR4.dat'):
+                if THIS_SYSTEM == 'MACOS':
+                    os.system('rm ./PRIMAR4.dat')
+                if THIS_SYSTEM == 'WINDOWS':
+                    os.system('rd /q ./PRIMAR4.dat')
+
+            if os.path.exists('./RESTART.dat'):
+                if THIS_SYSTEM == 'MACOS':
+                    os.system('rm ./RESTART.dat')
+                if THIS_SYSTEM == 'WINDOWS':
+                    os.system('rd /q ./RESTART.dat')
+
             
         # 循环体成功退出，注意记录
         
