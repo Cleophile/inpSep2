@@ -34,10 +34,10 @@ def yield_dataset(random_ranges,random_type,number_of_randoms):
             buff = random_range_lower
             random_range_lower = random_range_higher
             random_range_higher = buff
-        if random_type == 1 :
+        if random_type[i] == 1 :
             # 1为均匀分布 0为高斯分布 可以添加
             random_numbers = np.random.rand(number_of_randoms)*(random_range_higher - random_range_lower) + random_range_lower
-        if random_type == 0 :
+        if random_type[i] == 0 :
             mu = (random_range_higher + random_range_lower) / 2
             sigma = ((random_range_higher - random_range_lower) / 2) / 2.576 # 99%置信区间
             random_numbers = np.random.randn(number_of_randoms)*sigma+mu
