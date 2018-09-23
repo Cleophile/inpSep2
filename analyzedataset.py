@@ -185,11 +185,8 @@ def main():
     path = "/Users/wangtianmin/Downloads/attach.inp"
     # path = "/Users/wangtianmin/Downloads/test.inp"
     ins = LoadFile(path)
-    # print(ins.hasContext)
     if ins.hasContext:
         pass
-        # print(ins['INPCOM'])
-        # print(list(zip(ins.blocks,ins.block_channel)))
 if __name__ == "__main__":
     main()
 
