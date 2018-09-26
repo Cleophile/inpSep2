@@ -162,7 +162,41 @@ class Window(QWidget):
                                   time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
                                   ,msg)
         self.logfile.write(s)
-        
+
+    def clear_previous(self):
+        if os.path.exists('./SAS.log'):
+            if THIS_SYSTEM == 'MACOS':
+                os.system('rm ./SAS.log')
+            if THIS_SYSTEM == 'WINDOWS':
+                os.system('rd /q ./SAS.log')
+        if os.path.exists('./SAS.pid'):
+            if THIS_SYSTEM == 'MACOS':
+                os.system('rm ./SAS.pid')
+            if THIS_SYSTEM == 'WINDOWS':
+                os.system('rd /q ./SAS.pid')
+
+        if os.path.exists('CHANNEL.dat'):
+            if THIS_SYSTEM == 'MACOS':
+                os.system('rm ./CHANNEL.dat')
+            if THIS_SYSTEM == 'WINDOWS':
+                os.system('rd /q ./CHANNEL.dat')
+        if os.path.exists('./INPUT.dat'):
+            if THIS_SYSTEM == 'MACOS':
+                os.system('rm ./INPUT.dat')
+            if THIS_SYSTEM == 'WINDOWS':
+                os.system('rd /q ./INPUT.dat')
+
+        if os.path.exists('./PRIMAR4.dat'):
+            if THIS_SYSTEM == 'MACOS':
+                os.system('rm ./PRIMAR4.dat')
+            if THIS_SYSTEM == 'WINDOWS':
+                os.system('rd /q ./PRIMAR4.dat')
+
+        if os.path.exists('./RESTART.dat'):
+            if THIS_SYSTEM == 'MACOS':
+                os.system('rm ./RESTART.dat')
+            if THIS_SYSTEM == 'WINDOWS':
+                os.system('rd /q ./RESTART.dat')
     
     def initUI(self):
         self.writelog(5,'Initiating System UI Layout...')
@@ -652,7 +686,8 @@ class Window(QWidget):
 
         self.writelog(8,'Before Transmitting Checklist Complete!')
 
-        print('自检完成')        
+        print('自检完成')
+        self.clear_previous()
 
         result_count = 1
         while True:
@@ -684,41 +719,9 @@ class Window(QWidget):
             thread1.start();thread2.start()
             while thread1.is_alive() or thread2.is_alive():
                 time.sleep(1)
-            if os.path.exists('./SAS.log'):
-                if THIS_SYSTEM == 'MACOS':
-                    os.system('rm ./SAS.log')
-                if THIS_SYSTEM == 'WINDOWS':
-                    os.system('rd /q ./SAS.log')
-            if os.path.exists('./SAS.pid'):
-                if THIS_SYSTEM == 'MACOS':
-                    os.system('rm ./SAS.pid')
-                if THIS_SYSTEM == 'WINDOWS':
-                    os.system('rd /q ./SAS.pid')
-
-            if os.path.exists('CHANNEL.dat'):
-                if THIS_SYSTEM == 'MACOS':
-                    os.system('rm ./CHANNEL.dat')
-                if THIS_SYSTEM == 'WINDOWS':
-                    os.system('rd /q ./CHANNEL.dat')
-            if os.path.exists('./INPUT.dat'):
-                if THIS_SYSTEM == 'MACOS':
-                    os.system('rm ./INPUT.dat')
-                if THIS_SYSTEM == 'WINDOWS':
-                    os.system('rd /q ./INPUT.dat')
-
-            if os.path.exists('./PRIMAR4.dat'):
-                if THIS_SYSTEM == 'MACOS':
-                    os.system('rm ./PRIMAR4.dat')
-                if THIS_SYSTEM == 'WINDOWS':
-                    os.system('rd /q ./PRIMAR4.dat')
-
-            if os.path.exists('./RESTART.dat'):
-                if THIS_SYSTEM == 'MACOS':
-                    os.system('rm ./RESTART.dat')
-                if THIS_SYSTEM == 'WINDOWS':
-                    os.system('rd /q ./RESTART.dat')
-
+            self.clear_previous()
             
+                        
         # 循环体成功退出，注意记录
         
         # 函数结束
