@@ -7,7 +7,6 @@
 import analyzedataset
 import alterdata
 
-import subprocess
 import multiprocessing
 
 from PyQt5.QtCore import *
@@ -109,7 +108,6 @@ class CountingThread(multiprocessing.Process):
         multiprocessing.Process.terminate(self)
 # 线程定义完毕
 
-
 class Window(QWidget):
     def __init__(self,sysargs):
         super().__init__()
@@ -118,7 +116,9 @@ class Window(QWidget):
         self.random_type_list = []
         self.random_number_type = {
                 'normal': 0 ,# 高斯分布
-                'uniform': 1 # 均匀分布
+                'uniform': 1,# 均匀分布
+                'expotential': 2, # 指数分布
+                'quadratic': 3 # 二次函数
                 # 可以添加
                 }
         self.logfile = sysargs[-1]
@@ -141,6 +141,7 @@ class Window(QWidget):
             urlList.append(str(url.toLocalFile()))
         if len(urlList) == 1:
             self.file_position_input_box.setText(urlList[0])
+            self.show_data()
             self.writelog(5,'File path inserted by drag&patch')
         else:
             self.writelog(1,'Error when parsing file.')
@@ -216,6 +217,10 @@ class Window(QWidget):
         random_function_label = QLabel("请选择随机数生成方式:", self)
         random_function_label.resize(random_function_label.sizeHint()*1.6)
         random_function_label.move(line_start_pos+161,line0)
+        
+        self.random_explain_label = QLabel("Gaussian Distribution", self)
+        self.random_explain_label.resize(300,23)
+        self.random_explain_label.move(line_start_pos + 300, 5)
         # ===================================
         
         # self.random_function_select = QRadioButton("选中为高斯分布, 否则为均匀分布", self)
@@ -225,6 +230,44 @@ class Window(QWidget):
         self.random_function_choose_list.move(line_start_pos+300, line0)
         for i in self.random_number_type.keys():
             self.random_function_choose_list.addItem(i)
+        self.random_function_choose_list.currentIndexChanged.connect(self.show_complement_info)
+
+        # complement section
+        self.complement_label_a = QLabel("a:",self)
+        self.complement_label_a.resize(self.complement_label_a.sizeHint()*1.6)
+        self.complement_label_a.move(line_start_pos + 432,line0)
+        self.complement_label_a.hide()
+
+        self.complement_label_gamma = QLabel("γ:",self)
+        self.complement_label_gamma.resize(self.complement_label_a.sizeHint()*1.6)
+        self.complement_label_gamma.move(line_start_pos + 432,line0)
+        self.complement_label_gamma.hide()
+
+        self.complement_first_insert = QLineEdit(None,self)
+        self.complement_first_insert.resize(50,30)
+        self.complement_first_insert.move(line_start_pos + 450,line0)
+        self.complement_first_insert.hide()
+
+        self.complement_label_b = QLabel("b:", self)
+        self.complement_label_b.resize(self.complement_label_b.sizeHint()*1.6)
+        self.complement_label_b.move(line_start_pos + 512, line0)
+        self.complement_label_b.hide()
+
+        self.complement_second_insert = QLineEdit(None, self)
+        self.complement_second_insert.resize(50, 30)
+        self.complement_second_insert.move(line_start_pos + 530, line0)
+        self.complement_second_insert.hide()
+
+        self.complement_label_c = QLabel("c:", self)
+        self.complement_label_c.resize(self.complement_label_b.sizeHint()*1.6)
+        self.complement_label_c.move(line_start_pos + 592, line0)
+        self.complement_label_c.hide()
+
+        self.complement_third_insert = QLineEdit(None, self)
+        self.complement_third_insert.resize(50, 30)
+        self.complement_third_insert.move(line_start_pos + 610, line0)
+        self.complement_third_insert.hide()
+        # end of complement section
 
         # 基本常数设定
         linegap=37
@@ -345,7 +388,7 @@ class Window(QWidget):
         # 输入上限位置
         self.input_random_right = QLineEdit(None,self)
         self.input_random_right.resize(45,30)
-        self.input_random_right.move(270,line35)
+        self.input_random_right.move(282,line35)
         # ================================================
 
         # 添加点
@@ -365,9 +408,6 @@ class Window(QWidget):
         del_random_button.setStyleSheet(r"border-radius:8px; background-color:#FFE061; font-size:35; border: 1px solid #84818C")
         del_random_button.clicked.connect(self.del_random)
         # del_point_button.clicked.connect(...)
-        # =================================================
-
-
         # =================================================
         line4 = line3+ linegap + 50
         line5 = line4
@@ -416,6 +456,37 @@ class Window(QWidget):
         self.show()
         self.writelog(5, 'UI Layout Set, Ready to go')
 
+    def show_complement_info(self):
+        info_type = self.random_number_type[self.random_function_choose_list.currentText()]
+        # initiated when the element of
+        self.complement_label_a.hide()
+        self.complement_label_gamma.hide()
+        self.complement_first_insert.hide()
+        self.complement_label_b.hide()
+        self.complement_second_insert.hide()
+        self.complement_label_c.hide()
+        self.complement_third_insert.hide()
+
+        if info_type == 1:
+            self.random_explain_label.setText("Uniform Distribution")
+        
+        if info_type == 0:
+            self.random_explain_label.setText("Gaussian Distribution")
+
+        if info_type == 2 : # 指数
+            self.complement_label_gamma.show()
+            self.complement_first_insert.show()
+            self.random_explain_label.setText(
+                "Expotential Distribution: f(x)=e^(γ*x)")
+        if info_type == 3: # 二次函数
+            self.complement_label_a.show()
+            self.complement_first_insert.show()
+            self.complement_label_b.show()
+            self.complement_second_insert.show()
+            self.complement_label_c.show()
+            self.complement_third_insert.show()
+            self.random_explain_label.setText("Quadratic Distribution: f(x)=ax^2+bx+c")
+
     def add_point(self):
         # 保证数据不能重复
         if self.input_box_row.text() and self.input_box_col.text() and self.block_name_input.text():
@@ -426,7 +497,6 @@ class Window(QWidget):
             self.input_box_row.clear()
             self.input_box_col.clear()
             self.writelog(6, 'Input point:({},{})'.format(point[0],point[1]))
-
         # 添加能够显示数据的功能
 
     def del_point(self):
@@ -450,7 +520,9 @@ class Window(QWidget):
             self.writelog(6, 'Random range added:({},{})'.format(*point))
 
     def del_random(self):
-        # RESOLVED!
+        # random_type_list
+        # randoms_show_area
+        # selected_randoms
         if len(self.selected_randoms):
             current = self.randoms_show_area.currentRow()
             itemdeleted = copy(self.selected_randoms[current])
@@ -720,10 +792,7 @@ class Window(QWidget):
             while thread1.is_alive() or thread2.is_alive():
                 time.sleep(1)
             self.clear_previous()
-            
-                        
         # 循环体成功退出，注意记录
-        
         # 函数结束
         
 
