@@ -42,6 +42,12 @@ def yield_dataset(random_ranges,random_type,number_of_randoms):
             sigma = ((random_range_higher - random_range_lower) / 2) / 2.576 # 99%置信区间
             random_numbers = np.random.randn(number_of_randoms)*sigma+mu
 
+        if random_type[i] == 1 : # 指数分布
+            # 目前的思路：改变lowerbound和upperbound的类型
+            pass
+        if random_type[i] == 2 : # 二次函数
+            pass
+
         random_data_set.append(random_numbers)
     ite = genpl(itembound=(0,number_of_randoms-1), number = number_of_numbers)
     for xh in ite:
@@ -80,13 +86,19 @@ def data_append(data,length):
                 data_str = ' ' + data_str[:e_position-1] + data_str[e_position:]
             else:
                 data_str = ' ' + data_str[:length-1]
-            
+        if data_str[-1] == '.':
+            data_str = ' ' + data_str[:-1]
         s += data_str
     return s
 
 
 def main():
-    ss = '     1.22222     4.33333' + data_append([133333333333333333],12)
+    # for i in genpl():
+        # print(i)
+    for i in yield_dataset([(1,2)]*3,[1,1,1],2):
+        print(i)
+    # ss = '     1.22222     4.33333' + data_append([133333333333333333],12)
+    ss = '    12     2' + data_append([1022.13333, 1060.12222],6)
     print(ss)
     print(len(ss))
 
