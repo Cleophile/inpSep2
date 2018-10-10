@@ -4,6 +4,7 @@
 # Hikari Software
 # Y-Enterprise
 import numpy as np
+from scipy.stats import expon
 
 def genpl(itembound=(0,4),number=2):
     '''
@@ -29,24 +30,38 @@ def yield_dataset(random_ranges,random_type,number_of_randoms):
     number_of_numbers = len(random_ranges)
     for i in range(number_of_numbers):
         # 检测随机数的上下界
-        random_range_lower, random_range_higher = random_ranges[i]
-        if random_range_lower > random_range_higher:
-            buff = random_range_lower
-            random_range_lower = random_range_higher
-            random_range_higher = buff
+        
         if random_type[i] == 1 :
+            random_range_lower, random_range_higher = random_ranges[i]
+            if random_range_lower > random_range_higher:
+                buff = random_range_lower
+                random_range_lower = random_range_higher
+                random_range_higher = buff
             # 1为均匀分布 0为高斯分布 可以添加
             random_numbers = np.random.rand(number_of_randoms)*(random_range_higher - random_range_lower) + random_range_lower
         if random_type[i] == 0 :
+            random_range_lower, random_range_higher = random_ranges[i]
+            if random_range_lower > random_range_higher:
+                buff = random_range_lower
+                random_range_lower = random_range_higher
+                random_range_higher = buff
             mu = (random_range_higher + random_range_lower) / 2
             sigma = ((random_range_higher - random_range_lower) / 2) / 2.576 # 99%置信区间
             random_numbers = np.random.randn(number_of_randoms)*sigma+mu
 
-        if random_type[i] == 1 : # 指数分布
+        if random_type[i] == 2 : # 指数分布
             # 目前的思路：改变lowerbound和upperbound的类型
-            pass
-        if random_type[i] == 2 : # 二次函数
-            pass
+            random_range_lower = random_ranges[i][0]
+            random_range_higher = random_ranges[i][1][0]
+            gamma = random_ranges[i][1][1]
+            random_numbers = expon.rvs(scale=1/gamma,size=number_of_randoms)
+        if random_type[i] == 3 : # 二次函数
+            random_range_lower = random_ranges[i][0]
+            random_range_higher = random_ranges[i][1][0]
+            a = random_ranges[i][1][1]
+            b = random_ranges[i][1][2]
+            c = random_ranges[i][1][3]
+            random_numbers = [1] * number_of_randoms
 
         random_data_set.append(random_numbers)
     ite = genpl(itembound=(0,number_of_randoms-1), number = number_of_numbers)
@@ -95,7 +110,7 @@ def data_append(data,length):
 def main():
     # for i in genpl():
         # print(i)
-    for i in yield_dataset([(1,2)]*3,[1,1,1],2):
+    for i in yield_dataset([(1,2),(1,2),(0,[0,1])],[1,1,2],2):
         print(i)
     # ss = '     1.22222     4.33333' + data_append([133333333333333333],12)
     ss = '    12     2' + data_append([1022.13333, 1060.12222],6)
