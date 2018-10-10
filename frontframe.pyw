@@ -466,6 +466,12 @@ class Window(QWidget):
         self.complement_second_insert.hide()
         self.complement_label_c.hide()
         self.complement_third_insert.hide()
+        self.input_random_right.setReadOnly(False)
+        self.input_random_left.setReadOnly(False)
+        self.input_random_right.setStyleSheet("background-color:#FFFFFF")
+        self.input_random_left.setStyleSheet("background-color:#FFFFFF")
+        self.input_random_right.setText("")
+        self.input_random_left.setText("")
 
         if info_type == 1:
             self.random_explain_label.setText("Uniform Distribution")
@@ -477,7 +483,14 @@ class Window(QWidget):
             self.complement_label_gamma.show()
             self.complement_first_insert.show()
             self.random_explain_label.setText(
-                "Expotential Distribution: f(x)=e^(γ*x)")
+                "Expotential Distribution: f(x)=γe^(-γ*x)")
+            self.input_random_left.setText("NULL")
+            self.input_random_right.setText("NULL")
+            self.input_random_right.setReadOnly(True)
+            self.input_random_left.setReadOnly(True)
+            self.input_random_right.setStyleSheet("background-color:#CCCCCC")
+            self.input_random_left.setStyleSheet("background-color:#CCCCCC")
+       
         if info_type == 3: # 二次函数
             self.complement_label_a.show()
             self.complement_first_insert.show()
@@ -510,11 +523,27 @@ class Window(QWidget):
 
     def add_random(self):
         if self.input_random_right.text() and self.input_random_left.text() and len(self.selected_points) > len(self.selected_randoms):
-            point = (float(self.input_random_left.text()),float(self.input_random_right.text()))
-            self.selected_randoms.append(point)
             random_type_name = self.random_function_choose_list.currentText()
-            self.random_type_list.append(self.random_number_type[random_type_name])
-            self.randoms_show_area.addItem("({}, {}，{})".format(*point,random_type_name))
+            random_type = self.random_number_type[random_type_name]
+            show_area_sentence = ''
+            self.random_type_list.append(random_type)
+            if random_type < 2:
+                point = (float(self.input_random_left.text()),float(self.input_random_right.text()))
+                show_area_sentence = "({},{}),{}".format(*point,random_type_name)
+            if random_type == 2:
+                # expotential
+                # 用上限开刀，上限是列表，中间有参数
+                # point = (float(self.input_random_left.text()),[float(self.input_random_right.text())])
+                point = (0,[0])
+                point[1].append(float(self.complement_first_insert.text() or 0))
+                show_area_sentence = "γ={},exp".format(*point[1][1:]) 
+            if random_type == 3:
+                point = (float(self.input_random_left.text()), [float(self.input_random_right.text())])
+                point[1].extend([float(self.complement_first_insert.text() or 0),float(self.complement_second_insert.text() or 0),float(self.complement_third_insert.text() or 0)])
+                show_area_sentence = "a={},b={},c={},quad".format(*point[1][1:])
+            if show_area_sentence:
+                self.randoms_show_area.addItem(show_area_sentence)
+            self.selected_randoms.append(point)
             self.input_random_left.clear()
             self.input_random_right.clear()
             self.writelog(6, 'Random range added:({},{})'.format(*point))
