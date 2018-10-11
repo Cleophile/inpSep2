@@ -6,7 +6,7 @@
 
 import analyzedataset
 import alterdata
-
+from adview import advance_view
 import multiprocessing
 
 from PyQt5.QtCore import *
@@ -45,22 +45,20 @@ def get_process_id(name):
 
 # 线程定义
 class WorkingThread(multiprocessing.Process):
-    def __init__(self, inputName, outputName):  # , pid_list=pid_list
+    def __init__(self, function_name, inputName, outputName):  # , pid_list=pid_list
         super().__init__()
         self.name = 'WorkingThread'
         self.inputName = inputName
         self.outputName = outputName
+        self.function_name = function_name
         # self.pid_list = pid_list
 
     def run(self):
         print('传输线程已经开始')
-        if THIS_SYSTEM == 'MACOS':
-            cmd_line = './sas <{}> {}'.format(self.inputName, self.outputName)
-        if THIS_SYSTEM == 'WINDOWS':
-            cmd_line = 'sas.exe <{}> {}'.format(self.inputName, self.outputName)
+        cmd_line = '{} < {} > {}'.format(self.function_name, self.inputName, self.outputName)
         os.system(cmd_line)
 
-
+'''
 class CountingThread(multiprocessing.Process):
     def __init__(self, window, inputNum,radar='sas', clock=600, interval=2):
         super().__init__()
@@ -107,6 +105,7 @@ class CountingThread(multiprocessing.Process):
         self.counting = False
         multiprocessing.Process.terminate(self)
 # 线程定义完毕
+'''
 
 class Window(QWidget):
     def __init__(self,sysargs):
@@ -125,6 +124,10 @@ class Window(QWidget):
         self.didGenerateFiles = False
         self.current_folder_file_count = -1
         self.current_folder = None
+        self.interval = 1
+        self.info_list = ['./sas',600]
+        if THIS_SYSTEM == 'WINDOWS':
+            info_list[0] = r'.\sas.exe'
         self.initUI()
         self.setAcceptDrops(True)
     
@@ -169,35 +172,35 @@ class Window(QWidget):
             if THIS_SYSTEM == 'MACOS':
                 os.system('rm ./SAS.log')
             if THIS_SYSTEM == 'WINDOWS':
-                os.system('rd /q ./SAS.log')
+                os.system(r'del .\SAS.log')
         if os.path.exists('./SAS.pid'):
             if THIS_SYSTEM == 'MACOS':
                 os.system('rm ./SAS.pid')
             if THIS_SYSTEM == 'WINDOWS':
-                os.system('rd /q ./SAS.pid')
+                os.system(r'del .\SAS.pid')
 
         if os.path.exists('CHANNEL.dat'):
             if THIS_SYSTEM == 'MACOS':
                 os.system('rm ./CHANNEL.dat')
             if THIS_SYSTEM == 'WINDOWS':
-                os.system('rd /q ./CHANNEL.dat')
+                os.system(r'del .\CHANNEL.dat')
         if os.path.exists('./INPUT.dat'):
             if THIS_SYSTEM == 'MACOS':
                 os.system('rm ./INPUT.dat')
             if THIS_SYSTEM == 'WINDOWS':
-                os.system('rd /q ./INPUT.dat')
+                os.system(r'del .\INPUT.dat')
 
         if os.path.exists('./PRIMAR4.dat'):
             if THIS_SYSTEM == 'MACOS':
                 os.system('rm ./PRIMAR4.dat')
             if THIS_SYSTEM == 'WINDOWS':
-                os.system('rd /q ./PRIMAR4.dat')
+                os.system('del .\PRIMAR4.dat')
 
         if os.path.exists('./RESTART.dat'):
             if THIS_SYSTEM == 'MACOS':
                 os.system('rm ./RESTART.dat')
             if THIS_SYSTEM == 'WINDOWS':
-                os.system('rd /q ./RESTART.dat')
+                os.system('del .\RESTART.dat')
     
     def initUI(self):
         self.writelog(5,'Initiating System UI Layout...')
@@ -449,7 +452,13 @@ class Window(QWidget):
         transmit_button.resize(120,68)
         transmit_button.move(613, 426)
         transmit_button.clicked.connect(self.transmit_file)
-        
+
+        self.advanced_setting_button = QPushButton("高级",self)
+        self.advanced_setting_button.setToolTip('设置SAS文件路径')
+        self.advanced_setting_button.resize(self.advanced_setting_button.sizeHint())
+        self.advanced_setting_button.move(50,463)
+
+        self.show_complement_info()        
         # 窗口部分设置
         self.setGeometry(238,118,759,517)
         self.setWindowTitle("随机数替换")
@@ -526,7 +535,7 @@ class Window(QWidget):
             random_type_name = self.random_function_choose_list.currentText()
             random_type = self.random_number_type[random_type_name]
             show_area_sentence = ''
-            self.random_type_list.append(random_type)
+            
             if random_type < 2:
                 point = (float(self.input_random_left.text()),float(self.input_random_right.text()))
                 show_area_sentence = "({},{}),{}".format(*point,random_type_name)
@@ -535,8 +544,13 @@ class Window(QWidget):
                 # 用上限开刀，上限是列表，中间有参数
                 # point = (float(self.input_random_left.text()),[float(self.input_random_right.text())])
                 point = (0,[0])
-                point[1].append(float(self.complement_first_insert.text() or 0))
-                show_area_sentence = "γ={},exp".format(*point[1][1:]) 
+                gamma_num = float(self.complement_first_insert.text() or 1)
+                if gamma_num == 0.0 or gamma_num == 0:
+                    QMessageBox.warning(self, "警告", 'γ不能为0',QMessageBox.Ok)
+                    return
+                point[1].append(gamma_num)
+                show_area_sentence = "γ={},exp".format(*point[1][1:])
+
             if random_type == 3:
                 point = (float(self.input_random_left.text()), [float(self.input_random_right.text())])
                 point[1].extend([float(self.complement_first_insert.text() or 0),float(self.complement_second_insert.text() or 0),float(self.complement_third_insert.text() or 0)])
@@ -544,6 +558,7 @@ class Window(QWidget):
             if show_area_sentence:
                 self.randoms_show_area.addItem(show_area_sentence)
             self.selected_randoms.append(point)
+            self.random_type_list.append(random_type)
             self.input_random_left.clear()
             self.input_random_right.clear()
             self.writelog(6, 'Random range added:({},{})'.format(*point))
@@ -812,14 +827,36 @@ class Window(QWidget):
         for i in range(self.current_folder_file_count + 1):
             # if i:
                 # thread1.terminate();thread2.terminate()
+            self.squawk = 0
+            total_time_per = self.info_list[1] - self.interval
             self.writelog(8,'Sending {}.inp...'.format(i))
             print('Doing {} to {}'.format(
                 input_file_form.format(i), output_file_form.format(i)))
-            thread1 = WorkingThread(input_file_form.format(i),output_file_form.format(i))
-            thread2 = CountingThread(self,i)
-            thread1.start();thread2.start()
-            while thread1.is_alive() or thread2.is_alive():
+            
+            if __name__ == "__main__":
+                thread1 = WorkingThread(self.info_list[0], input_file_form.format(i), output_file_form.format(i))
+                thread1.start()
+            time.sleep(self.interval)
+            print('程序睡眠{}秒'.format(self.interval))
+            try:
+                with open('SAS.pid') as f:
+                    content = f.readlines()
+                pid_raw = content[0].strip().split()
+                self.squawk = int(pid_raw[1])
+                print('PID已经取得')
+            except:
+                pass
+            while thread1.is_alive() and total_time_per >= 0:
                 time.sleep(1)
+                total_time_per -= 1
+            if total_time_per < 0:
+                self.window.writelog(8, '<ERROR> {}.inp transmission TIME OUT!'.format(self.inputNum))
+                if THIS_SYSTEM == 'WINDOWS':
+                    os.system('taskkill.exe /pid:'+str(self.squawk))
+                if THIS_SYSTEM == 'MACOS':
+                    os.system('kill {}'.format(self.squawk))
+                print('WorkingThread Killed.')
+
             self.clear_previous()
         # 循环体成功退出，注意记录
         # 函数结束
@@ -836,6 +873,8 @@ if __name__ == "__main__":
     log_file.write('\n\n')
     app = QApplication(sys.argv)
     w = Window(sys.argv + [log_file])
+    ad_w = advance_view(w.info_list)
+    w.advanced_setting_button.clicked.connect(ad_w.handle_click)
     sys.exit(app.exec_())
 
 
