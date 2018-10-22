@@ -212,6 +212,7 @@ class Window(QWidget):
         self.complement_label_b = QLabel("b:", self)
         self.complement_label_b.resize(QSize(19, 26))
         self.complement_label_b.move(line_start_pos + 512, line0)
+        self.complement_label_b.setFont(self.plain_font_size)
         self.complement_label_b.hide()
 
         self.complement_second_insert = QLineEdit(None, self)
@@ -223,6 +224,7 @@ class Window(QWidget):
         self.complement_label_c = QLabel("c:", self)
         self.complement_label_c.resize(QSize(19, 26))
         self.complement_label_c.move(line_start_pos + 592, line0)
+        self.complement_label_c.setFont(self.plain_font_size)
         self.complement_label_c.hide()
 
         self.complement_third_insert = QLineEdit(None, self)
@@ -454,6 +456,7 @@ class Window(QWidget):
         self.advanced_setting_button.setToolTip('设置SAS文件路径')
         self.advanced_setting_button.resize(QSize(68,35))
         self.advanced_setting_button.move(50, 463)
+        self.advanced_setting_button.setFont(self.plain_font_size)
 
         self.show_complement_info()        
         # 窗口部分设置
