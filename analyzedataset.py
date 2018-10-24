@@ -60,10 +60,13 @@ class LoadFile(object):
         self.__sep = sep
 
         # 完整的读入文档
-        # try :
-        f = open(path,'r')
+        try :
+            f = open(path,'r')
+            content = f.readlines()
         # Fuck Away Comments:
-        content = f.readlines()
+        except :
+            f = open(path,'r',encoding='GB18030')
+            content = f.readlines()
         cleaned_dta = []
         for i in content:
             cleaned_dta.append(i.split('#')[0])
@@ -76,7 +79,6 @@ class LoadFile(object):
     @property
     def sep(self):
         return self.__sep
-
 
     def splitBlocks(self):
         # 结构：data_per_block 的每个列表是一个block的所有元素
@@ -182,7 +184,7 @@ class LoadFile(object):
     
 
 def main():
-    path = "/Users/wangtianmin/Downloads/attach.inp"
+    path = "/Users/wangtianmin/Downloads/this_test/UTOP20180509-DF-BL-CL-LE-PN-PL.inp"
     # path = "/Users/wangtianmin/Downloads/test.inp"
     ins = LoadFile(path)
     if ins.hasContext:
