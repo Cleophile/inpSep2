@@ -112,6 +112,13 @@ class Window(QWidget):
         self.logfile.write(s)
 
     def clear_previous(self):
+        self.fort_list = [i for i in os.listdir('.') if 'fort' in i]
+        for fortname in self.fort_list:
+            if THIS_SYSTEM == 'MACOS':
+                os.system('rm ./{}'.format(fortname))
+            if THIS_SYSTEM == 'WINDOWS':
+                os.system(r'del .\{}'.format(fortname))
+
         if os.path.exists('./SAS.log'):
             if THIS_SYSTEM == 'MACOS':
                 os.system('rm ./SAS.log')
