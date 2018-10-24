@@ -259,7 +259,13 @@ class Window(QWidget):
         self.file_position_input_box.resize(498,30)
         self.file_position_input_box.setFont(self.plain_font_size)
         # ================================================
-        
+
+        self.file_browser_button = QPushButton("浏览",self)
+        self.file_browser_button.setFont(self.plain_font_size)
+        self.file_browser_button.move(697, line1)
+        self.file_browser_button.resize(QSize(68,32))
+        self.file_browser_button.clicked.connect(self.file_browser_action)
+
         line2 = line1 + linegap
         # 选定Block的提示框
         block_name_label = QLabel("请输入Block的名称", self)
@@ -467,10 +473,17 @@ class Window(QWidget):
 
         self.show_complement_info()        
         # 窗口部分设置
-        self.setGeometry(238,118,759,517)
+        self.setGeometry(238,118,779,517)
         self.setWindowTitle("随机数替换")
         self.show()
         self.writelog(5, 'UI Layout Set, Ready to go')
+
+    def file_browser_action(self):
+        browsed_path = QFileDialog.getOpenFileUrl(self, "Browser", ".")
+        this_path = browsed_path[0].toLocalFile()
+        this_path.replace(r'file://','')
+        self.file_position_input_box.setText(this_path)
+        self.show_data()
 
     def show_complement_info(self):
         info_type = self.random_number_type[self.random_function_choose_list.currentText()]
