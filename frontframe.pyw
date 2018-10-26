@@ -544,6 +544,8 @@ class Window(QWidget):
     def del_point(self):
         if len(self.selected_points):
             current = self.points_show_area.currentRow()
+            if current == -1:
+                return
             itemdeleted = copy(self.selected_points[current])
             self.points_show_area.takeItem(current)
             del self.selected_points[current]
@@ -557,7 +559,11 @@ class Window(QWidget):
             show_area_sentence = ''
             
             if random_type < 2:
-                point = (float(self.input_random_left.text()),float(self.input_random_right.text()))
+                try :
+                    point = (float(self.input_random_left.text()),float(self.input_random_right.text()))
+                except :
+                    QMessageBox.warning(self,"警告",'不合法的输入',QMessageBox.Ok)
+                    return
                 show_area_sentence = "({},{}),{}".format(*point,random_type_name)
             if random_type == 2:
                 # expotential
@@ -589,6 +595,8 @@ class Window(QWidget):
         # selected_randoms
         if len(self.selected_randoms):
             current = self.randoms_show_area.currentRow()
+            if current == -1:
+                return
             itemdeleted = copy(self.selected_randoms[current])
             self.randoms_show_area.takeItem(current)
             del self.selected_randoms[current]
@@ -880,6 +888,8 @@ class Window(QWidget):
             self.clear_previous()
         # 循环体成功退出，注意记录
         # 函数结束
+        self.didGenerateFiles = False
+
         
 
     def closeEvent(self,event):
