@@ -10,6 +10,7 @@ import sys
 '''
 LOG: 20180608
 在数据结构中加入通道CHANNEL的部分，数组处理
+空格分割优先
 INPCOM     1     1     0 第二个数字：channel 
 BLOCK后面数字的含义
 可能修改一下索引的语法
@@ -124,9 +125,52 @@ class LoadFile(object):
                 # 数字
                 # 解析黏连的数据 从1开始（第二个数字就要开始
                 # 防止第一个数就出现问题
+                # 思路：在最后一个数据地方添加一个assert？
+                
+                simple_worked = False
+                
                 try:
+                    data_this_line = []
+                    # 空格的解析, 这是最最原始的方法，但是需要很多很多个assert条件，比较严格
+                    # 这不是完全的，需要在最后进行进一步的assert，comment的内容需要全部打印出来
+                    # 解析失败的数据利用comment来表示
                     number_of_numbers = int(line_total[6:12])
-                except: # All comments
+                    comment = ' '.join(line[2+number_of_numbers:])
+                    this_line_position = [6, 12]  # 结束为止
+                    for i in range(number_of_numbers):
+                        data_this_line.append(float(line[2+i].replace('D','E')))
+                        this_line_position.append(line_total[this_line_position[-1]:].index(
+                            line[2+i]) + len(line[2+i]) + this_line_position[-1])
+                    if len(line) != number_of_numbers + 2:
+                        tail_position = line_total[this_line_position[-1]:].index(line[2+number_of_numbers
+                                                                                    ]) + this_line_position[-1]
+                    else:
+                        tail_position = len(line_total) - 1
+                    this_block_length = (this_line_position[-1] - 12) // number_of_numbers
+                    if number_of_numbers * this_block_length + 12 < this_line_position[-1]:
+                        this_block_length += 1
+
+                    block_datas = {'tail_position': tail_position, 'row': int(
+                        line[0]), 'count': number_of_numbers, 'data': data_this_line, 'rawline': line_total, 'length': this_block_length, 'iscomment': False}
+                    this_block.append(block_datas)
+                    # print(block_datas)
+                    simple_worked = True
+
+                except:
+                    pass
+
+                block_datas = None
+                tail_position = None
+                this_line_position = None
+                data_this_line = []
+                number_of_numbers = None
+                this_block_length = None
+                if simple_worked:
+                    continue
+
+                try :
+                    number_of_numbers = int(line_total[6:12])
+                except : # All comments
                     block_datas = {'tail_position': 0, 'row': int(line[0]), 'count': 0, 'data': [], 'rawline': line_total, 'length': 0, 'iscomment': True}
                 first_item_length = len(str(number_of_numbers))
                 if len(line[1])>first_item_length : # 第一个数字黏连
@@ -167,6 +211,7 @@ class LoadFile(object):
                 else:
                     block_datas = {'tail_position':0, 'row': int(line[0]), 'count': 0, 'data': [], 'rawline': line_total, 'length': 0, 'iscomment': True}
                 this_block.append(block_datas)
+                # print(block_datas)
 
 
 # 这里结构有点混乱 需要重新修改结构 确保data
@@ -184,7 +229,7 @@ class LoadFile(object):
     
 
 def main():
-    path = "/Users/wangtianmin/Downloads/this_test/UTOP20180509-DF-BL-CL-LE-PN-PL.inp"
+    path = '/Users/wangtianmin/WorkingMain/septxt_proj/cleaned_sample.inp'
     # path = "/Users/wangtianmin/Downloads/test.inp"
     ins = LoadFile(path)
     if ins.hasContext:
