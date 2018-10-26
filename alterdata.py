@@ -91,7 +91,7 @@ def data_append(data,length):
             else :
                 data_str = data_str[:length]
         
-        if len(data_str.strip()) == length and data_str[0] != '-':
+        if len(data_str.strip()) == length and data_str[0] != '-' and '.' in data_str:
             if 'E' in data_str or 'e' in data_str:
                 # 1.0000000E+12 length = 6
                 if 'E' in data_str:
