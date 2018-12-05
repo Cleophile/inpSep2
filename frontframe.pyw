@@ -157,7 +157,7 @@ class Window(QWidget):
     
     def initUI(self):
         self.plain_font_size = QFont()
-        self.plain_font_size.setPointSize(13)
+        self.plain_font_size.setPointSize(12)
         self.writelog(5,'Initiating System UI Layout...')
         QToolTip.setFont(QFont('SansSerif', 10))
         # 需要添加一些输入模块
