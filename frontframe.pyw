@@ -163,318 +163,439 @@ class Window(QWidget):
         # 需要添加一些输入模块
         line0=28
         line_start_pos = 55
+        
+        self.vbox = QVBoxLayout() # MAIN BOX
+        self.line1 = QHBoxLayout()
+        self.vbox.addLayout(self.line1)
+        
+        self.line1_empty = QLabel('')
+        self.line1.addWidget(self.line1_empty,3)
 
-        number_of_randoms_label = QLabel("请输入随机数个数",self)
-        number_of_randoms_label.resize(QSize(166, 30))
-        number_of_randoms_label.move(line_start_pos, line0)
-        number_of_randoms_label.setFont(self.plain_font_size)
+        self.random_explain_label = QLabel("Gaussian Distribution", self)
+        self.random_explain_label.resize(300,23)
+        # self.random_explain_label.move(line_start_pos + 300, 5)
+        self.random_explain_label.setFont(self.plain_font_size)
+        # ===================================
+        self.line1.addWidget(self.random_explain_label,1)
+
+        self.line2 = QHBoxLayout()
+        self.vbox.addLayout(self.line2)
+        self.line2_left = QHBoxLayout()
+        self.line2_right = QHBoxLayout()
+        self.line2.addLayout(self.line2_left,3)
+        self.line2.addLayout(self.line2_right,2)
+        self.line2.setStretchFactor(self.line2_left, 2)
+        self.line2.setStretchFactor(self.line2_right,1)
+
+        self.number_of_randoms_label = QLabel("请输入随机数个数",self)
+        self.number_of_randoms_label.resize(QSize(166, 30))
+        # number_of_randoms_label.move(line_start_pos, line0)
+        self.number_of_randoms_label.setFont(self.plain_font_size)
+        self.line2_left.addWidget(self.number_of_randoms_label)
 
         self.number_of_randoms_input = QLineEdit(None, self)
         self.number_of_randoms_input.resize(35,30)
-        self.number_of_randoms_input.move(line_start_pos+111,line0)
+        # self.number_of_randoms_input.move(line_start_pos+111,line0)
         self.number_of_randoms_input.setFont(self.plain_font_size)
+        self.line2_left.addWidget(self.number_of_randoms_input)
         # ====================================
         
-        random_function_label = QLabel("请选择随机数生成方式:", self)
-        random_function_label.resize(QSize(214, 30))
-        random_function_label.move(line_start_pos+161,line0)
-        random_function_label.setFont(self.plain_font_size)
+        self.random_function_label = QLabel("请选择随机数生成方式:", self)
+        self.random_function_label.resize(QSize(214, 30))
+        # random_function_label.move(line_start_pos+161,line0)
+        self.random_function_label.setFont(self.plain_font_size)
+        self.line2_left.addWidget(self.random_function_label)
         
-        self.random_explain_label = QLabel("Gaussian Distribution", self)
-        self.random_explain_label.resize(300,23)
-        self.random_explain_label.move(line_start_pos + 300, 5)
-        self.random_explain_label.setFont(self.plain_font_size)
-        # ===================================
-        
+                
         # self.random_function_select = QRadioButton("选中为高斯分布, 否则为均匀分布", self)
         # self.random_function_select.resize(self.random_function_select.sizeHint()*1.6)
         # self.random_function_select.move(line_start_pos+300,line0-5)
         self.random_function_choose_list = QComboBox(self)
-        self.random_function_choose_list.move(line_start_pos+300, line0)
+        # self.random_function_choose_list.move(line_start_pos+300, line0)
         for i in self.random_number_type.keys():
             self.random_function_choose_list.addItem(i)
         self.random_function_choose_list.currentIndexChanged.connect(self.show_complement_info)
         self.random_function_choose_list.resize(QSize(120, 30))
         self.random_function_choose_list.setFont(self.plain_font_size)
+        self.line2_left.addWidget(self.random_function_choose_list)
 
         # complement section
+        self.empty_line2 = QLabel('')
+        self.line2_right.addWidget(self.empty_line2)
+
         self.complement_label_a = QLabel("a:", self)
         self.complement_label_a.resize(QSize(19, 26))
-        self.complement_label_a.move(line_start_pos + 432,line0)
+        # self.complement_label_a.move(line_start_pos + 432,line0)
         self.complement_label_a.setFont(self.plain_font_size)
         self.complement_label_a.hide()
+        self.line2_right.addWidget(self.complement_label_a)
 
         self.complement_label_gamma = QLabel("γ:",self)
         self.complement_label_gamma.resize(QSize(19, 26))
-        self.complement_label_gamma.move(line_start_pos + 432,line0)
+        # self.complement_label_gamma.move(line_start_pos + 432,line0)
         self.complement_label_gamma.setFont(self.plain_font_size)
         self.complement_label_gamma.hide()
+        self.line2_right.addWidget(self.complement_label_gamma)
 
         self.complement_first_insert = QLineEdit(None, self)
         self.complement_first_insert.resize(50,30)
-        self.complement_first_insert.move(line_start_pos + 450, line0)
+        # self.complement_first_insert.move(line_start_pos + 450, line0)
         self.complement_first_insert.setFont(self.plain_font_size)
         self.complement_first_insert.hide()
+        self.line2_right.addWidget(self.complement_first_insert)
 
         self.complement_label_b = QLabel("b:", self)
         self.complement_label_b.resize(QSize(19, 26))
-        self.complement_label_b.move(line_start_pos + 512, line0)
+        # self.complement_label_b.move(line_start_pos + 512, line0)
         self.complement_label_b.setFont(self.plain_font_size)
         self.complement_label_b.hide()
+        self.line2_right.addWidget(self.complement_label_b)
 
         self.complement_second_insert = QLineEdit(None, self)
         self.complement_second_insert.resize(50, 30)
-        self.complement_second_insert.move(line_start_pos + 530, line0)
+        # self.complement_second_insert.move(line_start_pos + 530, line0)
         self.complement_second_insert.setFont(self.plain_font_size)
         self.complement_second_insert.hide()
+        self.line2_right.addWidget(self.complement_second_insert)
 
         self.complement_label_c = QLabel("c:", self)
         self.complement_label_c.resize(QSize(19, 26))
-        self.complement_label_c.move(line_start_pos + 592, line0)
+        # self.complement_label_c.move(line_start_pos + 592, line0)
         self.complement_label_c.setFont(self.plain_font_size)
         self.complement_label_c.hide()
+        self.line2_right.addWidget(self.complement_label_c)
 
         self.complement_third_insert = QLineEdit(None, self)
         self.complement_third_insert.resize(50, 30)
-        self.complement_third_insert.move(line_start_pos + 610, line0)
+        # self.complement_third_insert.move(line_start_pos + 610, line0)
         self.complement_third_insert.setFont(self.plain_font_size)
         self.complement_third_insert.hide()
         # end of complement section
+        self.line2_right.addWidget(self.complement_third_insert)
 
         # 基本常数设定
         linegap=37
         line1 = linegap+line0
         # ====================================
 
+        self.line3 = QHBoxLayout()
+        self.vbox.addLayout(self.line3)
+
         # 输入文本位置的文本框提示符
-        file_position_label = QLabel("请输入原始文件的位置",self)
-        file_position_label.resize(QSize(208, 30))
-        file_position_label.move(line_start_pos, line1)
-        file_position_label.setFont(self.plain_font_size)
+        self.file_position_label = QLabel("请输入原始文件的位置",self)
+        self.file_position_label.resize(QSize(208, 30))
+        # file_position_label.move(line_start_pos, line1)
+        self.file_position_label.setFont(self.plain_font_size)
+        self.line3.addWidget(self.file_position_label)
         # ================================================
 
         # 用于输入文件位置的文本框 
         self.file_position_input_box = QLineEdit(None, self)
-        self.file_position_input_box.move(195, line1)
+        # self.file_position_input_box.move(195, line1)
         self.file_position_input_box.resize(498,30)
         self.file_position_input_box.setFont(self.plain_font_size)
+        self.line3.addWidget(self.file_position_input_box)
         # ================================================
 
         self.file_browser_button = QPushButton("浏览",self)
         self.file_browser_button.setFont(self.plain_font_size)
-        self.file_browser_button.move(697, line1)
+        # self.file_browser_button.move(697, line1)
         self.file_browser_button.resize(QSize(68,32))
         self.file_browser_button.clicked.connect(self.file_browser_action)
+        self.line3.addWidget(self.file_browser_button)
 
         line2 = line1 + linegap
+        self.line4 = QHBoxLayout()
+        self.vbox.addLayout(self.line4)
+
+        self.line4_left = QHBoxLayout()
+        self.line4.addLayout(self.line4_left,3)
+        self.empty_line4 = QLabel('')
+        self.line4.addWidget(self.empty_line4,1)
+        
+
         # 选定Block的提示框
-        block_name_label = QLabel("请输入Block的名称", self)
-        block_name_label.resize(QSize(179, 30))
-        block_name_label.move(line_start_pos, line2)
-        block_name_label.setFont(self.plain_font_size)
+        self.block_name_label = QLabel("请输入Block的名称", self)
+        self.block_name_label.resize(QSize(179, 30))
+        # block_name_label.move(line_start_pos, line2)
+        self.block_name_label.setFont(self.plain_font_size)
+        self.line4_left.addWidget(self.block_name_label)
 
         # 输入block的文本框
         self.block_name_input = QLineEdit(None,self)
         self.block_name_input.resize(220,30)
-        self.block_name_input.move(195,line2)
+        # self.block_name_input.move(195,line2)
         self.block_name_input.setFont(self.plain_font_size)
+        self.line4_left.addWidget(self.block_name_input)
 
         # 显示数据的按钮
-        show_block_data_button = QPushButton("显示数据",self)
-        show_block_data_button.resize(QSize(94, 35))
-        show_block_data_button.move(195+220+60, line2)
-        show_block_data_button.clicked.connect(self.show_data)
-        show_block_data_button.setFont(self.plain_font_size)
+        self.show_block_data_button = QPushButton("显示数据",self)
+        self.show_block_data_button.resize(QSize(94, 35))
+        # show_block_data_button.move(195+220+60, line2)
+        self.show_block_data_button.clicked.connect(self.show_data)
+        self.show_block_data_button.setFont(self.plain_font_size)
+        self.line4_left.addWidget(self.show_block_data_button)
 
         # 更高级的方法：直接拖动 
-        line3 = line2 + linegap
-        block_insert_label = QLabel("输入block的序数：", self)
-        block_insert_label.resize(QSize(179, 30))
-        block_insert_label.move(line_start_pos, line3)
-        block_insert_label.setFont(self.plain_font_size)
+        self.line5 = QHBoxLayout()
+        self.vbox.addLayout(self.line5)
+        self.line5_left = QHBoxLayout()
+        self.line5_right = QHBoxLayout()
+        self.line5.addLayout(self.line5_left,9)
+        self.line5.addLayout(self.line5_right,2)
+        self.empty_line5 = QLabel('')
+        self.line5.addWidget(self.empty_line5,2)
+
+        self.block_insert_label = QLabel("输入block的序数：", self)
+        self.block_insert_label.resize(QSize(179, 30))
+        # block_insert_label.move(line_start_pos, line3)
+        self.block_insert_label.setFont(self.plain_font_size)
+        self.line5_left.addWidget(self.block_insert_label)
 
         self.block_insert = QLineEdit(None,self)
         self.block_insert.resize(55, 30)
-        self.block_insert.move(line_start_pos+45+71, line3)
+        # self.block_insert.move(line_start_pos+45+71, line3)
         self.block_insert.setFont(self.plain_font_size)
-
+        self.line5_left.addWidget(self.block_insert)
+        
         # 输入行位置的标签
-        point_left_label = QLabel("请输入需要取的点  行：",self)
-        point_left_label.resize(QSize(221, 30))
-        point_left_label.move(55+115+71, line3)
-        point_left_label.setFont(self.plain_font_size)
+        self.point_left_label = QLabel("请输入需要取的点  行：",self)
+        self.point_left_label.resize(QSize(221, 30))
+        # point_left_label.move(55+115+71, line3)
+        self.point_left_label.setFont(self.plain_font_size)
+        self.line5_left.addWidget(self.point_left_label)
         # ================================================
         
         # 字符“列”
-        file_col_label = QLabel("列：",self)
-        file_col_label.resize(QSize(208, 30))
-        file_col_label.setFont(self.plain_font_size)
-        file_col_label.move(245+115+71,line3)
+        self.file_col_label = QLabel("列：",self)
+        self.file_col_label.resize(QSize(208, 30))
+        self.file_col_label.setFont(self.plain_font_size)
+        # file_col_label.move(245+115+71,line3)
         # ================================================
 
         # 输入行位置
         self.input_box_row = QLineEdit(None,self)
         self.input_box_row.resize(45, 30)
-        self.input_box_row.move(195+115+71,line3)
+        # self.input_box_row.move(195+115+71,line3)
         self.input_box_row.setFont(self.plain_font_size)
+        self.line5_left.addWidget(self.input_box_row)
         # ================================================
 
+        self.line5_left.addWidget(self.file_col_label)
         # 输入列位置
         self.input_box_col = QLineEdit(None,self)
         self.input_box_col.resize(45, 30)
-        self.input_box_col.move(270+115+71, line3)
+        # self.input_box_col.move(270+115+71, line3)
         self.input_box_col.setFont(self.plain_font_size)
+        self.line5_left.addWidget(self.input_box_col)
         # ================================================
 
         self.plus_font = QFont()
         self.plus_font.setPointSize(25)
 
         # 添加点
-        add_point_button = QPushButton("+",self)
-        add_point_button.setToolTip('<b>添加</b>当前输入的数据')
-        add_point_button.resize(50, 30)
-        add_point_button.move(335+115+71, line3)
-        add_point_button.setStyleSheet(r"border-radius:8px; font-size:35; border: 1px solid #84818C")
-        add_point_button.clicked.connect(self.add_point)
-        add_point_button.setFont(self.plus_font)
+        self.add_point_button = QPushButton("+",self)
+        self.add_point_button.setToolTip('<b>添加</b>当前输入的数据')
+        self.add_point_button.resize(50, 30)
+        # add_point_button.move(335+115+71, line3)
+        self.add_point_button.setStyleSheet(r"border-radius:8px; font-size:35; border: 1px solid #84818C")
+        self.add_point_button.clicked.connect(self.add_point)
+        self.add_point_button.setFont(self.plus_font)
+        self.line5_right.addWidget(self.add_point_button)
         # ================================================
 
         # 删除点
-        del_point_button = QPushButton("-",self)
-        del_point_button.setToolTip('<b>删除</b>最后输入的数据')
-        del_point_button.move(400+115+71, line3)
-        del_point_button.resize(50, 30)
-        del_point_button.setStyleSheet(r"border-radius:8px; background-color:#FFE061; font-size:35; border: 1px solid #84818C")
-        del_point_button.clicked.connect(self.del_point)
-        del_point_button.setFont(self.plus_font)
-        # =================================================
-        self.del_all_font = QFont()
-        self.del_all_font.setPointSize(16)
-        # 清空数据
-        del_all_button = QPushButton("清空输入", self)
-        del_all_button.setToolTip('<b>删除所有指定的点数据</b>')
-        del_all_button.resize(QSize(94, 35))
-        del_all_button.setFont(self.del_all_font)
-        del_all_button.setStyleSheet("background-color:red; color: white")
-        del_all_button.move(125-85 ,422)
-        del_all_button.clicked.connect(self.clearall)
-        # =================================================
+        self.del_point_button = QPushButton("-",self)
+        self.del_point_button.setToolTip('<b>删除</b>最后输入的数据')
+        # del_point_button.move(400+115+71, line3)
+        self.del_point_button.resize(50, 30)
+        self.del_point_button.setStyleSheet(r"border-radius:8px; background-color:#FFE061; font-size:35; border: 1px solid #84818C")
+        self.del_point_button.clicked.connect(self.del_point)
+        self.del_point_button.setFont(self.plus_font)
+        self.line5_right.addWidget(self.del_point_button)
 
+        # =================================================
+        
         # 复制部分
-        line35 = line3 + linegap + 8
-         # 输入随机数下限的标签
-        random_left_label = QLabel("请输入需要随机数下限：", self)
-        random_left_label.resize(QSize(229, 30))
-        random_left_label.setFont(self.plain_font_size)
-        random_left_label.move(55, line35)
+        # line35 = line3 + linegap + 8
+        # 输入随机数下限的标签
+        self.line6 = QHBoxLayout()
+        self.vbox.addLayout(self.line6)
+
+        self.line6_left = QHBoxLayout()
+        self.line6_right = QHBoxLayout()
+        self.empty_line6 = QLabel()
+
+        self.line6.addLayout(self.line6_left,5)
+        self.line6.addLayout(self.line6_right,2)
+        self.line6.addWidget(self.empty_line6,5)
+
+        self.random_left_label = QLabel("请输入需要随机数下限：", self)
+        self.random_left_label.resize(QSize(229, 30))
+        self.random_left_label.setFont(self.plain_font_size)
+        self.line6_left.addWidget(self.random_left_label)
+        # random_left_label.move(55, line35)
         # ================================================
         
         # 字符“上限”
-        random_right_label = QLabel("上限:",self)
-        random_right_label.resize(QSize(48, 30))
-        random_right_label.setFont(self.plain_font_size)
-        random_right_label.move(245,line35)
+        self.random_right_label = QLabel("上限:",self)
+        self.random_right_label.resize(QSize(48, 30))
+        self.random_right_label.setFont(self.plain_font_size)
+        
+        # random_right_label.move(245,line35)
         # ================================================
 
         # 输入下限位置
         self.input_random_left = QLineEdit(None,self)
         self.input_random_left.resize(45, 30)
-        self.input_random_left.move(195, line35)
+        # self.input_random_left.move(195, line35)
         self.input_random_left.setFont(self.plain_font_size)
+        self.line6_left.addWidget(self.input_random_left)
         # ================================================
 
         # 输入上限位置
         self.input_random_right = QLineEdit(None,self)
         self.input_random_right.resize(45, 30)
-        self.input_random_right.move(282, line35)
+        # self.input_random_right.move(282, line35)
         self.input_random_right.setFont(self.plain_font_size)
+        
+        self.line6_left.addWidget(self.random_right_label)
+
+        self.line6_left.addWidget(self.input_random_right)
         # ================================================
 
         # 添加点
-        add_random_button = QPushButton("+", self)
-        add_random_button.setToolTip('<b>添加</b>一个随机数范围')
-        add_random_button.resize(50, 30)
-        add_random_button.move(335, line35)
-        add_random_button.setStyleSheet(r"border-radius:8px; font-size:35; border: 1px solid #84818C")
-        add_random_button.clicked.connect(self.add_random)
-        add_random_button.setFont(self.plus_font)
+        self.add_random_button = QPushButton("+", self)
+        self.add_random_button.setToolTip('<b>添加</b>一个随机数范围')
+        self.add_random_button.resize(50, 30)
+        # add_random_button.move(335, line35)
+        self.add_random_button.setStyleSheet(r"border-radius:8px; font-size:35; border: 1px solid #84818C")
+        self.add_random_button.clicked.connect(self.add_random)
+        self.add_random_button.setFont(self.plus_font)
+        self.line6_right.addWidget(self.add_random_button)
         # ================================================
 
         # 删除点
-        del_random_button = QPushButton("-", self)
-        del_random_button.setToolTip('<b>删除</b>一个随机数范围')
-        del_random_button.move(400,line35)
-        del_random_button.resize(50,30)
-        del_random_button.setStyleSheet(r"border-radius:8px; background-color:#FFE061; font-size:35; border: 1px solid #84818C")
-        del_random_button.clicked.connect(self.del_random)
-        del_random_button.setFont(self.plus_font)
+        self.del_random_button = QPushButton("-", self)
+        self.del_random_button.setToolTip('<b>删除</b>一个随机数范围')
+        # del_random_button.move(400,line35)
+        self.del_random_button.resize(50,30)
+        self.del_random_button.setStyleSheet(r"border-radius:8px; background-color:#FFE061; font-size:35; border: 1px solid #84818C")
+        self.del_random_button.clicked.connect(self.del_random)
+        self.del_random_button.setFont(self.plus_font)
+        self.line6_right.addWidget(self.del_random_button)
         # =================================================
-        line4 = line3+ linegap + 50
-        line5 = line4
+        # line4 = line3+ linegap + 50
+        # line5 = line4
         # 显示所有的点
-        points_show_area_label = QLabel("已经选择的点（行，列）",self)
-        points_show_area_label.resize(QSize(229, 30))
-        points_show_area_label.move(line_start_pos-37,line4)
-        points_show_area_label.setFont(self.plain_font_size)
+        self.line7 = QHBoxLayout()
+        self.vbox.addLayout(self.line7)
+
+        self.points_show_area_label = QLabel("已经选择的点（行，列）",self)
+        self.points_show_area_label.resize(QSize(229, 30))
+        # points_show_area_label.move(line_start_pos-37,line4)
+        self.points_show_area_label.setFont(self.plain_font_size)
+        self.line7.addWidget(self.points_show_area_label)
+        
+        self.show_area_layout = QHBoxLayout()
+        self.vbox.addLayout(self.show_area_layout)
 
         self.points_show_area = QListWidget(self)
-        self.points_show_area.move(line_start_pos-45, line5+35)
+        # self.points_show_area.move(line_start_pos-45, line5+35)
         self.points_show_area.resize(150,150)
         self.points_show_area.setFont(self.plain_font_size)
+        self.show_area_layout.addWidget(self.points_show_area)
 
         # 显示所有的随机数
-        randoms_show_area_label = QLabel("已经选择的随机数", self)
-        randoms_show_area_label.resize(QSize(166, 30))
-        randoms_show_area_label.move(line_start_pos+145,line4)
-        randoms_show_area_label.setFont(self.plain_font_size)
+        self.randoms_show_area_label = QLabel("已经选择的随机数", self)
+        self.randoms_show_area_label.resize(QSize(166, 30))
+        # randoms_show_area_label.move(line_start_pos+145,line4)
+        self.randoms_show_area_label.setFont(self.plain_font_size)
+        self.line7.addWidget(self.randoms_show_area_label)
 
         self.randoms_show_area = QListWidget(self)
-        self.randoms_show_area.move(line_start_pos+120,line5+35)
+        # self.randoms_show_area.move(line_start_pos+120,line5+35)
         self.randoms_show_area.resize(150, 150)
         self.randoms_show_area.setFont(self.plain_font_size)
-
+        self.show_area_layout.addWidget(self.randoms_show_area)
 
         # 数据显示窗口
-        data_show_area_label = QLabel("对应Block的数据",self)
-        data_show_area_label.resize(QSize(158, 30))
-        data_show_area_label.move(502, line4)
-        data_show_area_label.setFont(self.plain_font_size)
+        self.data_show_area_label = QLabel("对应Block的数据",self)
+        self.data_show_area_label.resize(QSize(158, 30))
+        # data_show_area_label.move(502, line4)
+        self.data_show_area_label.setFont(self.plain_font_size)
+        self.line7.addWidget(self.data_show_area_label)
 
         self.data_show_area = QTextEdit(None, self)
         self.data_show_area.resize(365, 150)
-        self.data_show_area.move(line_start_pos+298,line5+35)
+        # self.data_show_area.move(line_start_pos+298,line5+35)
         self.data_show_area.setReadOnly(True)
         self.data_show_area.setFont(self.plain_font_size)
+        self.show_area_layout.addWidget(self.data_show_area)
 
+
+        # SPECIAL LAYOUT
         # 计算用的按钮
+        self.last_box = QHBoxLayout()
+        self.left_last_box = QVBoxLayout()
+
+        self.last_box.addLayout(self.left_last_box)
+
+        self.last_empty_label = QLabel('')
+        self.last_box.addWidget(self.last_empty_label)
+
+        self.last_box.setStretchFactor(self.left_last_box,1)
+        self.last_box.setStretchFactor(self.last_empty_label,3)
+
+        self.vbox.addLayout(self.last_box)
+        
         self.generate_button_font = QFont()
         self.generate_button_font.setPointSize(16)
+        
+        self.del_all_font = QFont()
+        self.del_all_font.setPointSize(16)
+        # 清空数据
+        self.del_all_button = QPushButton("清空输入", self)
+        self.del_all_button.setToolTip('<b>删除所有指定的点数据</b>')
+        self.del_all_button.resize(QSize(94, 35))
+        self.del_all_button.setFont(self.del_all_font)
+        self.del_all_button.setStyleSheet("background-color:red; color: white")
+        # del_all_button.move(125-85 ,422)
+        self.del_all_button.clicked.connect(self.clearall)
+        self.left_last_box.addWidget(self.del_all_button)
+        # =================================================
 
-        btn = QPushButton("生成文件", self)
-        btn.setToolTip('<b>确认无误后</b>按下此按钮生成文件.')
-        btn.resize(120, 68)
-        btn.move(472, 426)
-        btn.setFont(self.generate_button_font)
-        btn.clicked.connect(self.save_file)
+        self.btn = QPushButton("生成文件", self)
+        self.btn.setToolTip('<b>确认无误后</b>按下此按钮生成文件.')
+        self.btn.resize(120, 68)
+        # btn.move(472, 426)
+        self.btn.setFont(self.generate_button_font)
+        self.btn.clicked.connect(self.save_file)
 
         # 传输文件的按钮
-        transmit_button = QPushButton("传输至SAS",self)
-        transmit_button.setToolTip('<b>确认无误后传输文件到SAS</b>')
-        transmit_button.resize(120,68)
-        transmit_button.move(613, 426)
-        transmit_button.clicked.connect(self.transmit_file)
-        transmit_button.setFont(self.generate_button_font)
-
+        self.transmit_button = QPushButton("传输至SAS",self)
+        self.transmit_button.setToolTip('<b>确认无误后传输文件到SAS</b>')
+        self.transmit_button.resize(120,68)
+        # transmit_button.move(613, 426)
+        self.transmit_button.clicked.connect(self.transmit_file)
+        self.transmit_button.setFont(self.generate_button_font)
+        
         self.advanced_setting_button = QPushButton("高级", self)
         self.advanced_setting_button.setToolTip('设置SAS文件路径')
         self.advanced_setting_button.resize(QSize(68,35))
-        self.advanced_setting_button.move(50, 463)
+        # self.advanced_setting_button.move(50, 463)
         self.advanced_setting_button.setFont(self.plain_font_size)
+        self.left_last_box.addWidget(self.advanced_setting_button)
+
+        self.last_box.addWidget(self.btn)
+        self.last_box.addWidget(self.transmit_button)
+        self.vbox.setStretchFactor(self.last_box,2)
 
         self.show_complement_info()        
         # 窗口部分设置
-        self.setGeometry(238,118,779,517)
+        self.setGeometry(238,118,749,617)
         self.setWindowTitle("随机数替换")
+        self.setLayout(self.vbox)
         self.show()
         self.writelog(5, 'UI Layout Set, Ready to go')
 
@@ -539,7 +660,7 @@ class Window(QWidget):
             self.input_box_row.clear()
             self.input_box_col.clear()
             self.writelog(6, 'Input point:({},{})'.format(point[0],point[1]))
-        # 添加能够显示数据的功能
+        # 添加能够 显示数据 的功能
 
     def del_point(self):
         if len(self.selected_points):
