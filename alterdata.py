@@ -61,7 +61,9 @@ def yield_dataset(random_ranges,random_type,number_of_randoms):
             a = random_ranges[i][1][1]
             b = random_ranges[i][1][2]
             c = random_ranges[i][1][3]
-            random_numbers = [1] * number_of_randoms
+            random_numbers_pre = np.random.rand(number_of_randoms)*(random_range_higher - random_range_lower) + random_range_lower
+
+            random_numbers = [a*i*i + b*i + c for i in random_numbers_pre]
 
         random_data_set.append(random_numbers)
     ite = genpl(itembound=(0,number_of_randoms-1), number = number_of_numbers)
