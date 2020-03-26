@@ -1,2 +1,7 @@
 __pycache__
+.idea
 *.txt
+*.inp
+*.out
+*.spec
+build
