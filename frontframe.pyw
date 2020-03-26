@@ -983,6 +983,7 @@ class Window(QWidget):
                 input_file_form.format(i), output_file_form.format(i)))
             
             if __name__ == "__main__":
+                multiprocessing.freeze_support()
                 thread1 = WorkingThread(self.info_list[0], input_file_form.format(i), output_file_form.format(i))
                 thread1.start()
             time.sleep(self.interval)
